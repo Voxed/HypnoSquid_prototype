@@ -38,15 +38,20 @@ private:
     hs::CS<PlayerComponent> *player;
     hs::CS<WorldComponent> *world;
 
-    void Configure(hs::MessageBusListenerBuilder &msl, hs::ComponentStoreListenerBuilder &csls) override
+    void Configure(
+        hs::MessageBusListenerBuilder &msl,
+        hs::ComponentStoreListenerBuilder &csls) override
     {
         msl.AddCallback(this, &PhysicsSystem::Update);
-        csls.AddCallback<PlayerComponent>([this](const hs::Entity &e)
-                                          { std::cout << "Created: " << player->Get(e) << std::endl; },
-                                          [this](const hs::Entity &e)
-                                          {
-                                              std::cout << "Destroyed: " << player->Get(e) << std::endl;
-                                          });
+        csls.AddCallback<PlayerComponent>(
+            [this](const hs::Entity &e)
+            {
+                std::cout << "Created: " << player->Get(e) << std::endl;
+            },
+            [this](const hs::Entity &e)
+            {
+                std::cout << "Destroyed: " << player->Get(e) << std::endl;
+            });
     }
 
     void Start()
@@ -70,7 +75,9 @@ private:
     hs::CS<PlayerComponent> *player;
     hs::CS<WorldComponent> *world;
 
-    void Configure(hs::MessageBusListenerBuilder &msl, hs::ComponentStoreListenerBuilder &csls) override
+    void Configure(
+        hs::MessageBusListenerBuilder &msl,
+        hs::ComponentStoreListenerBuilder &csls) override
     {
         msl.AddCallbacks(this,
                          &TestSystem::Update,
