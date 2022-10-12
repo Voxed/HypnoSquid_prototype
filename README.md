@@ -1,3 +1,7 @@
+# I'll let the source speak for itself for now :)
+
+HypnoSquid.Game/src/main.cc
+```cpp
 #include <HypnoSquid.hh>
 #include <HypnoSquid.Core.hh>
 #include <string>
@@ -93,3 +97,4 @@ auto main(int argc, const char **argv) -> int
         .Build()
         .Start();
 }
+```
