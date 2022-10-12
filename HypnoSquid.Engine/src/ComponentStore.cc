@@ -3,7 +3,7 @@
 namespace hs
 {
 
-    ComponentStore<IComponent>::ComponentStore() {}
+    ComponentStore<IComponent>::ComponentStore(ComponentStoreListener csl) : csl(csl) {}
 
     bool ComponentStore<IComponent>::add(Entity entityId, std::unique_ptr<IComponent> data)
     {
@@ -11,22 +11,37 @@ namespace hs
             return false;
 
         storage.insert(std::make_pair(entityId, std::move(data)));
+
+        csl.OnCreation(entityId);
+
         return true;
     }
 
-    IComponent &ComponentStore<IComponent>::Get(const Entity& entityId)
+    IComponent &ComponentStore<IComponent>::Get(const Entity &entityId)
     {
         return *storage[entityId];
     }
 
-    const IComponent &ComponentStore<IComponent>::Get(const Entity& entityId) const
+    const IComponent &ComponentStore<IComponent>::Get(const Entity &entityId) const
     {
         return *(storage.at(entityId));
     }
 
-    bool ComponentStore<IComponent>::Has(const Entity& entityId) const
+    bool ComponentStore<IComponent>::Has(const Entity &entityId) const
     {
         return storage.contains(entityId);
+    }
+
+    bool ComponentStore<IComponent>::Remove(const Entity &entityId)
+    {
+        if (!storage.contains(entityId))
+            return false;
+
+        csl.OnDestruction(entityId);
+
+        storage.erase(entityId);
+
+        return true;
     }
 
     std::unordered_set<Entity> ComponentStore<IComponent>::GetEntitiesWith()

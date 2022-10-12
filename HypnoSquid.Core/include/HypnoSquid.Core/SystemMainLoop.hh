@@ -21,6 +21,7 @@ namespace hs::core
         HS_TAG(FinalSystem)
 
     private:
+        void Configure(hs::MessageBusListenerBuilder&, ComponentStoreListenerBuilder &csls) override {}
         void Start() override;
     };
 

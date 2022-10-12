@@ -5,6 +5,9 @@
 
 #include "World.hh"
 #include "MessageBus.hh"
+#include "MessageBusListener.hh"
+#include "MessageBusListenerBuilder.hh"
+#include "ComponentStoreListenerBuilder.hh"
 
 #include "metadata.hh"
 
@@ -14,15 +17,34 @@ namespace hs
     class ISystem
     {
     public:
+        virtual void Configure(hs::MessageBusListenerBuilder &msl, ComponentStoreListenerBuilder &csls) = 0;
         virtual void Start() = 0;
 
     protected:
-        hs::MessageBus &Bus() { return *messageBus; }
-        hs::World &World() { return *world; }
+        hs::MessageBus &Bus()
+        {
+            if (!started)
+                throw "Attempted to access message bus before system start.";
+            return *messageBus;
+        }
+        hs::World &World()
+        {
+            if (!started)
+                throw "Attempted to access world before system start.";
+            return *world;
+        }
 
     private:
+        void initialize(hs::World &world, hs::MessageBus &messageBus)
+        {
+            started = true;
+            this->world = &world;
+            this->messageBus = &messageBus;
+        }
+
         hs::World *world;
         hs::MessageBus *messageBus;
+        bool started = false;
 
         friend class Engine;
     };

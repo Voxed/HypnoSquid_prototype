@@ -5,6 +5,7 @@
 #include "ISystem.hh"
 #include <iostream>
 #include "MessageBus.hh"
+#include "MessageBusListenerBuilder.hh"
 
 namespace hs
 {
@@ -16,7 +17,7 @@ namespace hs
         void Start();
 
     private:
-        Engine(std::vector<std::unique_ptr<ISystem>> systems);
+        Engine(std::vector<std::unique_ptr<ISystem>> systems, MessageBusListenerBuilder msl, ComponentStoreListenerBuilder csls);
 
         World world;
         MessageBus messageBus;
@@ -38,7 +39,7 @@ namespace hs
     public:
         template <typename T, typename... Args>
         requires System<T>
-        EngineBuilder& Emplace(Args... args)
+            EngineBuilder &Emplace(Args... args)
         {
             SystemInfo systemInfo;
             if constexpr (HS_HAS_TAG(T, FinalSystem))
@@ -50,7 +51,7 @@ namespace hs
         }
 
         template <typename... Ts>
-        EngineBuilder& EmplaceAll()
+        EngineBuilder &EmplaceAll()
         {
             ([&]
              { Emplace<Ts>(); }(),
@@ -61,7 +62,16 @@ namespace hs
 
         Engine Build()
         {
-            return Engine(std::move(systems));
+            MessageBusListenerBuilder msl;
+            ComponentStoreListenerBuilder csls;
+
+            for (auto &s : this->systems)
+            {
+                s->Configure(msl, csls);
+            }
+
+
+            return Engine(std::move(systems), std::move(msl), std::move(csls));
         }
 
     private:

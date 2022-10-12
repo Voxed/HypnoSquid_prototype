@@ -3,16 +3,18 @@
 namespace hs
 {
 
-    Engine::Engine(std::vector<std::unique_ptr<ISystem>> systems) : systems(std::move(systems)) {
-        for(auto &s : this->systems) {
-            s->world = &world;
-            s->messageBus = &messageBus;
+    Engine::Engine(std::vector<std::unique_ptr<ISystem>> systems, MessageBusListenerBuilder msl, ComponentStoreListenerBuilder csls)
+        : systems(std::move(systems)), messageBus(msl.build()), world(csls.buildListeners())
+    {
+        for (auto &s : this->systems)
+        {
+            s->initialize(world, messageBus);
         }
     }
 
     void Engine::Start()
     {
-        std::cout << "Engine started." << std::endl;
+        std::cout << "[E] Engine started." << std::endl;
         for (auto &s : systems)
         {
             s->Start();
@@ -28,7 +30,7 @@ namespace hs
 
         if (finalized)
             throw "Engine has already been finalized.";
-            
+
         finalized |= systemInfo.final;
 
         std::cout << "[S] System \"" << systemInfo.name << "\" added!" << std::endl;

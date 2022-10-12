@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <optional>
+#include "ComponentStoreListener.hh"
 
 namespace hs
 {
@@ -21,24 +22,29 @@ namespace hs
         std::unordered_set<Entity> GetEntitiesWith();
         IComponent &Get(const Entity &entityId);
         const IComponent &Get(const Entity &entityId) const;
+        bool Remove(const Entity &entityId);
 
     protected:
-        ComponentStore();
+        ComponentStore(ComponentStoreListener csl);
 
         bool add(Entity entityId, std::unique_ptr<IComponent> data);
 
         std::unordered_map<Entity, std::unique_ptr<IComponent>> storage;
+
+        ComponentStoreListener csl;
     };
 
     template <typename T>
     struct ComponentStore : ComponentStore<IComponent>
     {
     public:
-        ComponentStore(){};
+        ComponentStore(ComponentStoreListener csl) : ComponentStore<IComponent>(std::move(csl)){};
 
         bool Add(const Entity &entityId, std::unique_ptr<T> data)
         {
-            return ComponentStore<IComponent>::add(entityId, std::move(data));
+            bool returnCode = ComponentStore<IComponent>::add(entityId, std::move(data));
+
+            return returnCode;
         }
 
         template <typename... Args>
@@ -49,7 +55,10 @@ namespace hs
                 if (storage.size() >= 1)
                     throw "Attempted to add more than one entity to a singleton component store.";
 
-            return ComponentStore<IComponent>::add(entityId, std::make_unique<T>(args...));
+            bool returnCode = ComponentStore<IComponent>::add(entityId, std::make_unique<T>(args...));
+
+
+            return returnCode;
         }
 
         T &Get(const Entity &entityId)
@@ -65,6 +74,11 @@ namespace hs
         bool Has(const Entity &entityId)
         {
             return ComponentStore<IComponent>::Has(entityId);
+        }
+
+        bool Remove(const Entity &entityId)
+        {
+            return ComponentStore<IComponent>::Remove(entityId);
         }
 
         std::unordered_set<Entity> GetEntitiesWith()
