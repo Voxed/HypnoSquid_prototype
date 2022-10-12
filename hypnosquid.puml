@@ -1,0 +1,89 @@
+@startuml
+
+title HypnoSquid.Engine
+
+class Engine {
+    - world: World
+    - systems: Set<ISystem*>
+    - bus: MessageBus
+}
+
+interface ISystem {
+    Configure(MessageBusBuilder): void
+}
+
+class MessageBus {
+    - listener: IMessageBusListener*
+}
+
+interface IMessageBusListener {
+
+}
+
+class MessageBusBuilder {
+    - callbacks: Map<int, Function<void(IMessage, World&, MessageBus&)>>
+    + AddCallback(messageId: int, Function<void(IMessage, World&, MessageBus&)> callback)
+    + Build(): MessageBus*
+}
+
+interface IMessage {
+
+}
+
+Engine *-- MessageBus
+Engine *-- ISystem
+MessageBusBuilder ..> IMessage
+MessageBus ..> IMessage
+ISystem ..> MessageBusBuilder
+MessageBusBuilder ..> World
+MessageBusBuilder ..> IMessageBusListener
+MessageBusBuilder .> MessageBus
+Engine ..> MessageBusBuilder
+MessageBus *-- IMessageBusListener
+
+class EntitySet {
+    - entities: Set<uint64>
+    - componentStore: ComponentStore&
+    + GetWith(componentId: int): EntitySet
+}
+
+class EntityView {
+    - id: uint64
+    - componentStore: ComponentStore&
+    + GetComponent(componentId: int): IComponent*
+    + HasComponent(componentId: int): bool
+    + AddComponent(componentId: int, data: IComponent*): void
+}
+
+class ComponentStore {
+    - components: Map<ushort, Map<uint64, IComponent*>>
+    + GetEntitiesWith(componentId: int): Set<uint64> 
+    + AddComponent(componentId: int, entityId: int, data: IComponent*): bool
+}
+
+class World {
+    + GetEntities(): EntitySet
+    + CreateEntity(): EntityView
+    - nextEntityId: uint64
+    - componentStore: ComponentStore
+}
+
+interface IComponent {
+    
+}
+
+World ..> EntitySet
+EntitySet o-- ComponentStore
+EntityView o-- ComponentStore
+Engine *-- World
+ComponentStore *-- IComponent
+World *-- ComponentStore
+EntitySet .> EntityView
+World .> EntityView
+
+right footer 
+Authored by Voxed (github.com/voxed)
+endfooter
+
+@enduml
+

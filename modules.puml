@@ -1,0 +1,78 @@
+@startuml
+
+title HypnoSquid Module Compile Units
+
+right footer 
+Authored by Voxed (github.com/voxed)
+endfooter
+
+node "MODULE_UNIT_1" as mu1 {
+    node "Module" as m1 {
+
+    }
+
+    node "Systems" as s1 {
+
+    }
+
+}
+
+node "MODULE_UNIT_2" as mu2 {
+    node "Module" as m2 {
+        
+    }
+    
+    node "Systems" as s2 {
+
+    }
+}
+
+node "ENGINE" {
+
+    class "World" as w {
+
+    }
+
+    class "ModuleRegistry" as mr {
+
+    }
+
+    interface "IModuleRegistry" as mri {
+
+    }
+
+    class "ModuleRegistryCacheProxy" as mrp {
+
+    }
+
+    class "Engine" as e {
+
+    }
+
+}
+
+note top of m1 {
+    Contains component ids.
+}
+
+note top of m2 {
+    Contains component ids.
+}
+
+
+mri --* e
+mr <.. e
+w --* e
+mrp <.. e
+
+mrp -|> mri
+mr -|> mri
+mrp o-- mr
+
+mu1 ..> mri
+mu2 ..> mri
+
+s1 --* w
+s2 --* w
+
+@enduml
