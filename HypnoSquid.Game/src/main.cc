@@ -2,73 +2,61 @@
 #include <HypnoSquid.Core.hh>
 #include <iostream>
 
-struct PlayerComponent : public hs::IComponent
-{
+struct PlayerComponent : public hs::IComponent {
     HS_COMPONENT(Game, Player)
     float x = 0, y = 0;
 
-    friend std::ostream &operator<<(std::ostream &os, const PlayerComponent &s)
-    {
+    friend std::ostream &operator<<(std::ostream &os, const PlayerComponent &s) {
         return (os << "PlayerComponent {x: " << s.x << ", y: " << s.y << "}");
     }
 };
 
-struct WorldComponent : public hs::IComponent
-{
+struct WorldComponent : public hs::IComponent {
     HS_COMPONENT(Game, WorldData)
     HS_TAG(SingletonComponent)
     float gravity = 0;
 
-    friend std::ostream &operator<<(std::ostream &os, const WorldComponent &s)
-    {
+    friend std::ostream &operator<<(std::ostream &os, const WorldComponent &s) {
         return (os << "WorldComponent {gravity: " << s.gravity << "}");
     }
 };
 
-struct TestMessage : public hs::IMessage
-{
+struct TestMessage : public hs::IMessage {
     HS_MESSAGE(Game, Test)
 };
 
-class PhysicsSystem : public hs::ISystem
-{
+class PhysicsSystem : public hs::ISystem {
 public:
     HS_SYSTEM(Game, Physics)
 private:
-    hs::CS<PlayerComponent> *player;
-    hs::CS<WorldComponent> *world;
+    hs::CS<PlayerComponent> *player = nullptr;
+    hs::CS<WorldComponent> *world = nullptr;
 
     void Configure(
-        hs::MessageBusListenerBuilder &msl,
-        hs::ComponentStoreListenerBuilder &csls) override
-    {
+            hs::MessageBusListenerBuilder &msl,
+            hs::ComponentStoreListenerBuilder &csls) override {
         msl.AddCallback(this, &PhysicsSystem::Update);
         csls.AddCallback<PlayerComponent>(
-            [this](const hs::Entity &e)
-            {
-                std::cout << "Created: " << player->Get(e) << std::endl;
-            },
-            [this](const hs::Entity &e)
-            {
-                std::cout << "Destroyed: " << player->Get(e) << std::endl;
-            });
+                [this](const hs::Entity &e) {
+                    std::cout << "Created: " << player->Get(e) << std::endl;
+                },
+                [this](const hs::Entity &e) {
+                    std::cout << "Destroyed: " << player->Get(e) << std::endl;
+                });
     }
 
-    void Start()
-    {
+    void Start() override {
         World().GetComponentStores(player, world);
     }
 
-    void Update(const hs::core::MessageUpdate &msg)
-    {
-        for (const auto &p : player->GetEntitiesWith())
+    void Update(const hs::core::MessageUpdate &msg) {
+        for (const auto &p: player->GetEntitiesWith())
             if (auto data = world->GetSingletonStorage())
                 player->Get(p).y += msg.delta * data.value()->gravity;
     }
 };
 
-class TestSystem : public hs::ISystem
-{
+class TestSystem : public hs::ISystem {
 public:
     HS_SYSTEM(Game, Test)
 private:
@@ -76,51 +64,44 @@ private:
     hs::CS<WorldComponent> *world;
 
     void Configure(
-        hs::MessageBusListenerBuilder &msl,
-        hs::ComponentStoreListenerBuilder &csls) override
-    {
+            hs::MessageBusListenerBuilder &msl,
+            hs::ComponentStoreListenerBuilder &csls) override {
         msl.AddCallbacks(this,
                          &TestSystem::Update,
                          &TestSystem::Update2);
     }
 
-    void Start() override
-    {
+    void Start() override {
         World().GetComponentStores(player, world);
         World().CreateEntity().EmplaceTo(*player);
         World().CreateEntity().EmplaceTo(*world);
     }
 
-    void Update(const hs::core::MessageUpdate &msg)
-    {
+    void Update(const hs::core::MessageUpdate &msg) {
         Bus().Send(TestMessage{});
-        if (auto data = world->GetSingletonStorage())
-        {
+        if (auto data = world->GetSingletonStorage()) {
             std::cout << *(data.value()) << std::endl;
             data.value()->gravity += 1000 * msg.delta;
         }
 
-        for (const auto &e : player->GetEntitiesWith())
-        {
+        for (const auto &e: player->GetEntitiesWith()) {
             if (player->Get(e).y > 2000)
                 player->Remove(e);
         }
     }
 
-    void Update2(const TestMessage &msg)
-    {
-        for (const auto &p : player->GetEntitiesWith())
+    void Update2(const TestMessage &msg) {
+        for (const auto &p: player->GetEntitiesWith())
             std::cout << player->Get(p) << std::endl;
     }
 };
 
-int main()
-{
+int main() {
     // Assemble and start the engine.
     hs::EngineBuilder()
-        .EmplaceAll<PhysicsSystem,
+            .EmplaceAll<PhysicsSystem,
                     TestSystem,
                     hs::core::SystemMainLoop>()
-        .Build()
-        .Start();
+            .Build()
+            .Start();
 }
