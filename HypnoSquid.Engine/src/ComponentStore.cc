@@ -53,4 +53,26 @@ namespace hs {
         return entities;
     }
 
+    std::optional<Entity> ComponentStore<IComponent>::getSingletonEntity() {
+        if (!storage.empty())
+            return storage.begin()->first;
+        else
+            return {};
+    }
+
+    std::optional<const IComponent *> ComponentStore<IComponent>::getSingletonStorage() const {
+        if (!storage.empty())
+            return (storage.begin()->second).get();
+        else
+            return {};
+    }
+
+    std::optional<IComponent *> ComponentStore<IComponent>::getSingletonStorage() {
+        if (!storage.empty())
+            return (storage.begin()->second).get();
+        else
+            return {};
+    }
+
+
 }

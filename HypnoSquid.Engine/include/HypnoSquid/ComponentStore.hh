@@ -1,3 +1,6 @@
+/// \file ComponentStore.hh
+/// \author Voxed (https://www.github.com/voxed)
+
 #pragma once
 
 #include "Entity.hh"
@@ -8,6 +11,7 @@
 #include <unordered_set>
 #include <optional>
 #include "ComponentStoreListener.hh"
+#include "utility.hh"
 
 namespace hs {
     template<typename T>
@@ -48,6 +52,12 @@ namespace hs {
 
         bool addSingleton(Entity entity, std::unique_ptr<IComponent> data);
 
+        std::optional<Entity> getSingletonEntity();
+
+        std::optional<const IComponent *> getSingletonStorage() const;
+
+        std::optional<IComponent *> getSingletonStorage();
+
         std::unordered_map<Entity, std::unique_ptr<IComponent>> storage;
 
         ComponentStoreListener csl;
@@ -85,50 +95,70 @@ namespace hs {
             return ComponentStore<IComponent>::add(entity, std::make_unique<T>(args...));
         }
 
+        /// Get the component data related to an entity within a component store.
+        /// \param entityId [in] The related entity.
+        /// \return The related component data.
         T &Get(const Entity &entityId) override {
-            return static_cast<T &>(ComponentStore<IComponent>::Get(entityId));
+            return *static_cast<T *>(&ComponentStore<IComponent>::Get(entityId));
         }
 
+        /// Get the constant component data related to an entity within a constant component store.
+        /// \param entityId [in] The related entity.
+        /// \return The constant related component data.
         const T &Get(const Entity &entityId) const override {
-            return static_cast<T &>(ComponentStore<IComponent>::Get(entityId));
+            return *static_cast<const T *>(&ComponentStore<IComponent>::Get(entityId));
         }
 
+        /// Check whether or not an entity has a relation inside the component store.
+        /// \param entity [in] The entity to check existence for.
+        /// \return A bool representing whether or not the relation exists.
         bool Has(const Entity &entityId) {
             return ComponentStore<IComponent>::Has(entityId);
         }
 
+        /// Remove the component relation within the component store containing a specified entity.
+        /// \param entity [in] The entity which is contained within the relation.
+        /// \return A bool representing whether or not the entity <u>previously</u> existed within the component store.
         bool Remove(const Entity &entityId) override {
             return ComponentStore<IComponent>::Remove(entityId);
         }
 
+        /// Get all entities with relations inside of the component store.
+        /// \return The entities with relations.
         std::unordered_set<Entity> GetEntitiesWith() override {
             return ComponentStore<IComponent>::GetEntitiesWith();
         }
 
+        /// Get the entity contained within the single relation of this singleton component store.
+        /// \return The entity contained within the single relation, {} if no relation exists.
         std::optional<Entity> GetSingletonEntity() {
             static_assert(HS_HAS_TAG(T, SingletonComponent),
                     "Attempted to get singleton entity from a non singleton component store.");
 
-            if (storage.size() > 0)
-                return storage.begin()->first;
-            else
-                return {};
+            return getSingletonEntity();
         }
 
+        /// Get the component data contained within the single relation of this singleton component store.
+        /// \return The component data contained within the single relation, {} if no relation exists.
         std::optional<T *> GetSingletonStorage() {
             static_assert(HS_HAS_TAG(T, SingletonComponent),
                     "Attempted to get singleton storage from a non singleton component store.");
 
-            if (storage.size() > 0)
-                return static_cast<T *>((storage.begin()->second).get());
-            else
-                return {};
+            return ComponentStore<IComponent>::getSingletonStorage().transform(staticCast<T *, IComponent *>);
         }
 
-        /*T &operator[](const Entity& e) { return Get(e); }
-        const T &operator[](const Entity& e) const { return Get(e); }*/
+        /// Get the component data contained within the single relation of this singleton component store.
+        /// \return The component data contained within the single relation, {} if no relation exists.
+        std::optional<const T *> GetSingletonStorage() const {
+            static_assert(HS_HAS_TAG(T, SingletonComponent),
+                    "Attempted to get singleton storage from a non singleton component store.");
+
+            return ComponentStore<IComponent>::getSingletonStorage().transform(
+                    staticCast<const T *, const IComponent *>);
+        }
     };
 
+    /// Alias for ComponentStore<T>
     template<typename T>
     using CS = ComponentStore<T>;
 
