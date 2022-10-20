@@ -7,24 +7,31 @@
 #include <iterator>
 #include <memory>
 
-#include "ComponentStore.hh"
 #include "IComponent.hh"
+#include "IEntityCollection.hh"
 
-namespace hs
-{
+namespace hs {
 
-    class EntitySet
-    {
+    class EntitySet : public IEntityCollection {
     public:
-        EntitySet(std::unordered_set<Entity> entities);
+        EntitySet();
+
+        explicit EntitySet(std::unordered_set<Entity> entities);
+
         EntitySet(std::initializer_list<Entity> entities);
-        EntitySet GetWith(ComponentStore<IComponent> &componentType);
+
+        EntitySet With(const IEntityCollection &coll) const;
+
+        bool Has(const Entity &entity) const override;
+
         std::unordered_set<Entity>::iterator begin();
+
         std::unordered_set<Entity>::iterator end();
 
     private:
         std::unordered_set<Entity> entities;
     };
+
     static_assert(std::ranges::range<EntitySet>);
 
 }

@@ -57,7 +57,7 @@ class EntityView {
 
 class ComponentStore {
     - components: Map<ushort, Map<uint64, IComponent*>>
-    + GetEntitiesWith(componentId: int): Set<uint64> 
+    + All(componentId: int): Set<uint64>
     + AddComponent(componentId: int, entityId: int, data: IComponent*): bool
 }
 

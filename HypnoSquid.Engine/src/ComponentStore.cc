@@ -1,8 +1,10 @@
+#include <utility>
+
 #include "HypnoSquid/ComponentStore.hh"
 
 namespace hs {
 
-    ComponentStore<IComponent>::ComponentStore(ComponentStoreListener csl) : csl(csl) {}
+    ComponentStore<IComponent>::ComponentStore(ComponentStoreListener csl) : csl(std::move(csl)) {}
 
     bool ComponentStore<IComponent>::add(Entity entity, std::unique_ptr<IComponent> data) {
         if (storage.contains(entity))
@@ -17,7 +19,7 @@ namespace hs {
 
     bool ComponentStore<IComponent>::addSingleton(hs::Entity entity, std::unique_ptr<IComponent> data) {
         if (!storage.empty())
-            throw "Attempted to add more than one entity to a singleton component store.";
+            throw std::length_error("Attempted to add more than one entity to a singleton component store.");
 
         return add(entity, std::move(data));
     }
@@ -45,12 +47,12 @@ namespace hs {
         return true;
     }
 
-    std::unordered_set<Entity> ComponentStore<IComponent>::GetEntitiesWith() {
+    EntitySet ComponentStore<IComponent>::All() const {
         std::unordered_set<Entity> entities;
         for (const auto &item: storage) {
             entities.insert(item.first);
         }
-        return entities;
+        return EntitySet(entities);
     }
 
     std::optional<Entity> ComponentStore<IComponent>::getSingletonEntity() {
@@ -73,6 +75,5 @@ namespace hs {
         else
             return {};
     }
-
 
 }

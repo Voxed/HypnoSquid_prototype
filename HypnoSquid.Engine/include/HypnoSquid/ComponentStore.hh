@@ -3,15 +3,18 @@
 
 #pragma once
 
-#include "Entity.hh"
-#include "IComponent.hh"
-#include <cstdio>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <optional>
+
 #include "ComponentStoreListener.hh"
+#include "Entity.hh"
+#include "IComponent.hh"
 #include "utility.hh"
+#include "EntitySet.hh"
+
+#include "IEntityCollection.hh"
 
 namespace hs {
     template<typename T>
@@ -19,16 +22,16 @@ namespace hs {
 
     /// A component store containing relations between entities and a singular type of component.
     template<>
-    struct ComponentStore<IComponent> {
+    struct ComponentStore<IComponent> : public IEntityCollection{
     public:
         /// Check whether or not an entity has a relation inside the component store.
         /// \param entity [in] The entity to check existence for.
         /// \return A bool representing whether or not the relation exists.
-        virtual bool Has(const Entity &entity) const;
+        bool Has(const Entity &entity) const override;
 
         /// Get all entities with relations inside of the component store.
         /// \return The entities with relations.
-        virtual std::unordered_set<Entity> GetEntitiesWith();
+        virtual EntitySet All() const;
 
         /// Get the component data related to an entity within the component store.
         /// \param entity [in] The related entity.
@@ -44,7 +47,6 @@ namespace hs {
         /// \param entity [in] The entity which is contained within the relation.
         /// \return A bool representing whether or not the entity <u>previously</u> existed within the component store.
         virtual bool Remove(const Entity &entityId);
-
     protected:
         explicit ComponentStore(ComponentStoreListener csl);
 
@@ -109,26 +111,6 @@ namespace hs {
             return *static_cast<const T *>(&ComponentStore<IComponent>::Get(entityId));
         }
 
-        /// Check whether or not an entity has a relation inside the component store.
-        /// \param entity [in] The entity to check existence for.
-        /// \return A bool representing whether or not the relation exists.
-        bool Has(const Entity &entityId) {
-            return ComponentStore<IComponent>::Has(entityId);
-        }
-
-        /// Remove the component relation within the component store containing a specified entity.
-        /// \param entity [in] The entity which is contained within the relation.
-        /// \return A bool representing whether or not the entity <u>previously</u> existed within the component store.
-        bool Remove(const Entity &entityId) override {
-            return ComponentStore<IComponent>::Remove(entityId);
-        }
-
-        /// Get all entities with relations inside of the component store.
-        /// \return The entities with relations.
-        std::unordered_set<Entity> GetEntitiesWith() override {
-            return ComponentStore<IComponent>::GetEntitiesWith();
-        }
-
         /// Get the entity contained within the single relation of this singleton component store.
         /// \return The entity contained within the single relation, {} if no relation exists.
         std::optional<Entity> GetSingletonEntity() {
@@ -161,5 +143,4 @@ namespace hs {
     /// Alias for ComponentStore<T>
     template<typename T>
     using CS = ComponentStore<T>;
-
 }

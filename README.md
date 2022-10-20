@@ -65,7 +65,7 @@ private:
 
     void Update(const hs::core::MessageUpdate &msg)
     {
-        for (const auto &p : player->GetEntitiesWith())
+        for (const auto &p : player->All())
             if (auto data = world->GetSingletonStorage())
                 player->Get(p).y += msg.delta * data.value()->gravity;
     }
@@ -104,7 +104,7 @@ private:
             data.value()->gravity += 1000 * msg.delta;
         }
 
-        for (const auto &e : player->GetEntitiesWith())
+        for (const auto &e : player->All())
         {
             if (player->Get(e).y > 2000)
                 player->Remove(e);
@@ -113,7 +113,7 @@ private:
 
     void Update2(const TestMessage &msg)
     {
-        for (const auto &p : player->GetEntitiesWith())
+        for (const auto &p : player->All())
             std::cout << player->Get(p) << std::endl;
     }
 };
